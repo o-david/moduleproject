@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map JSON to HTML List</title>
+</head>
+<body>
+    <ul id="moduleList"></ul>
+
+    <script>
+        const data = [
+            {
+                "resources": [
+                    {
+                        "linkTitle": "CLink",
+                        "pageTitle": "Introduction",
+                        "resources": "https://getstarted.com",
+                        "url": "/m-getting_started/c-introduction/"
+                    }
+                ],
+                "uri": "/m-getting_started/c-introduction/"
+            },
+            {
+                "resources": [
+                    {
+                        "linkTitle": "M-getting-started-resource",
+                        "pageTitle": "Getting Started",
+                        "resources": "isPDF.pdf",
+                        "url": "/m-getting_started/"
+                    }
+                ],
+                "uri": "/m-getting_started/"
+            },
+            {
+                "resources": [
+                    {
+                        "linkTitle": "final resource name",
+                        "pageTitle": "Migrating to Rcc",
+                        "resources": "link-to-resource.pdf",
+                        "url": "/m-rcc-fundamentals/c-resources-and-advanced/l-migrating-to-rcc/"
+                    }
+                ],
+                "uri": "/m-rcc-fundamentals/c-resources-and-advanced/l-migrating-to-rcc/"
+            },
+            {
+                "resources": [
+                    {
+                        "linkTitle": "M-get-started",
+                        "pageTitle": "Checkmk Fundamentals",
+                        "resources": "https://getstarted.com/flow.pdf",
+                        "url": "/m-checkmk-fundamentals/"
+                    },
+                    {
+                        "linkTitle": "M-resource",
+                        "pageTitle": "Checkmk Fundamentals",
+                        "resources": "isPDF.pdf",
+                        "url": "/m-checkmk-fundamentals/"
+                    }
+                ],
+                "uri": "/m-checkmk-fundamentals/"
+            },
+            {
+                "resources": [
+                    {
+                        "linkTitle": "LPDF",
+                        "pageTitle": "Before We Begin",
+                        "resources": "post-1.pdf",
+                        "url": "/m-getting_started/c-introduction/l-before-we-begin/"
+                    },
+                    {
+                        "linkTitle": "LZIP",
+                        "pageTitle": "Before We Begin",
+                        "resources": "https://from-l.zip",
+                        "url": "/m-getting_started/c-introduction/l-before-we-begin/"
+                    }
+                ],
+                "uri": "/m-getting_started/c-introduction/l-before-we-begin/"
+            },
+            {
+                "resources": [
+                    {
+                        "linkTitle": "Post PDF",
+                        "pageTitle": "How To Use This Course",
+                        "resources": "https://asd.com/important-link-no-extension",
+                        "url": "/m-getting_started/c-introduction/l-how-to-use-this-course/"
+                    },
+                    {
+                        "linkTitle": "Post 2 PDF",
+                        "pageTitle": "How To Use This Course",
+                        "resources": "https://post-1.zip",
+                        "url": "/m-getting_started/c-introduction/l-how-to-use-this-course/"
+                    }
+                ],
+                "uri": "/m-getting_started/c-introduction/l-how-to-use-this-course/"
+            }
+        ];
+
+        function createList(data) {
+            const moduleList = document.getElementById('moduleList');
+            const moduleMap = {};
+
+            data.forEach(item => {
+                const uriParts = item.uri.split('/');
+                const module = uriParts[1];
+                const chapter = uriParts[2] || '';
+                const lesson = uriParts[3] || '';
+
+                if (!moduleMap[module]) {
+                    moduleMap[module] = { chapters: {} };
+                }
+
+                if (chapter && !moduleMap[module].chapters[chapter]) {
+                    moduleMap[module].chapters[chapter] = { lessons: {} };
+                }
+
+                if (lesson && !moduleMap[module].chapters[chapter].lessons[lesson]) {
+                    moduleMap[module].chapters[chapter].lessons[lesson] = [];
+                }
+
+                item.resources.forEach(resource => {
+                    if (lesson) {
+                        moduleMap[module].chapters[chapter].lessons[lesson].push(resource.linkTitle);
+                    } else if (chapter) {
+                        moduleMap[module].chapters[chapter].lessons[resource.linkTitle] = [];
+                    } else {
+                        moduleMap[module].chapters[resource.linkTitle] = { lessons: {} };
+                    }
+                });
+            });
+
+            for (const module in moduleMap) {
+                const moduleLi = document.createElement('li');
+                moduleLi.textContent = `Module: ${module.replace('m-', '').replace('-', ' ')}`;
+                const chapterUl = document.createElement('ul');
+
+                for (const chapter in moduleMap[module].chapters) {
+                    const chapterLi = document.createElement('li');
+                    chapterLi.textContent = `Chapter: ${chapter.replace('c-', '').replace('-', ' ')}`;
+                    const lessonUl = document.createElement('ul');
+
+                    for (const lesson in moduleMap[module].chapters[chapter].lessons) {
+                        const lessonLi = document.createElement('li');
+                        lessonLi.textContent = lesson.startsWith('l-') ? `Lesson: ${lesson.replace('l-', '').replace('-', ' ')}` : `Resource: ${lesson}`;
+                        const resourceUl = document.createElement('ul');
+
+                        moduleMap[module].chapters[chapter].lessons[lesson].forEach(resource => {
+                            const resourceLi = document.createElement('li');
+                            resourceLi.textContent = `Resource: ${resource}`;
+                            resourceUl.appendChild(resourceLi);
+                        });
+
+                        if (resourceUl.childNodes.length > 0) {
+                            lessonLi.appendChild(resourceUl);
+                        }
+
+                        lessonUl.appendChild(lessonLi);
+                    }
+
+                    chapterLi.appendChild(lessonUl);
+                    chapterUl.appendChild(chapterLi);
+                }
+
+                moduleLi.appendChild(chapterUl);
+                moduleList.appendChild(moduleLi);
+            }
+        }
+
+        createList(data);
+    </script>
+</body>
+</html>
