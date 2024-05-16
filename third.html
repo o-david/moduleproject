@@ -120,9 +120,9 @@
                     if (lesson) {
                         moduleMap[module].chapters[chapter].lessons[lesson].push(resource);
                     } else if (chapter) {
-                        moduleMap[module].chapters[chapter].lessons[resource.linkTitle] = [];
+                        moduleMap[module].chapters[chapter].lessons[resource.linkTitle] = resource;
                     } else {
-                        moduleMap[module].chapters[resource.linkTitle] = { lessons: {} };
+                        moduleMap[module].chapters[resource.linkTitle] = resource;
                     }
                 });
             });
@@ -134,32 +134,55 @@
 
                 for (const chapter in moduleMap[module].chapters) {
                     const chapterLi = document.createElement('li');
-                    chapterLi.textContent = `Chapter: ${chapter.replace('c-', '').replace(/-/g, ' ')}`;
+                    const chapterContent = chapter.startsWith('c-') ? `Chapter: ${chapter.replace('c-', '').replace(/-/g, ' ')}` : null;
+                    if(chapterContent){
+
+                
+                    chapterLi.textContent = chapterContent;
                     const lessonUl = document.createElement('ul');
 
                     for (const lesson in moduleMap[module].chapters[chapter].lessons) {
                         const lessonLi = document.createElement('li');
-                        lessonLi.textContent = lesson.startsWith('l-') ? `Lesson: ${lesson.replace('l-', '').replace(/-/g, ' ')}` : `Resource: ${lesson}`;
-                        const resourceUl = document.createElement('ul');
+                        const lessonContent = lesson.startsWith('l-') ? `Lesson: ${lesson.replace('l-', '').replace(/-/g, ' ')}` : null;
+                        if (lessonContent) {
+                            lessonLi.textContent = lessonContent;
+                            const resourceUl = document.createElement('ul');
 
-                        moduleMap[module].chapters[chapter].lessons[lesson].forEach(resource => {
-                            const resourceLi = document.createElement('li');
+                            moduleMap[module].chapters[chapter].lessons[lesson].forEach(resource => {
+                                const resourceLi = document.createElement('li');
+                                const resourceLink = document.createElement('a');
+                                resourceLink.href = resource.resources;
+                                resourceLink.textContent = `Resource: ${resource.linkTitle}`;
+                                resourceLi.appendChild(resourceLink);
+                                resourceUl.appendChild(resourceLi);
+                            });
+
+                            if (resourceUl.childNodes.length > 0) {
+                                lessonLi.appendChild(resourceUl);
+                            }
+                        } 
+                        else {
                             const resourceLink = document.createElement('a');
-                            resourceLink.href = resource.resources;
-                            resourceLink.textContent = resource.linkTitle;
-                            resourceLi.appendChild(resourceLink);
-                            resourceUl.appendChild(resourceLi);
-                        });
-
-                        if (resourceUl.childNodes.length > 0) {
-                            lessonLi.appendChild(resourceUl);
+                            resourceLink.href = moduleMap[module].chapters[chapter].lessons[lesson].resources;
+                            resourceLink.textContent = `Resource: ${lesson}`;
+                            lessonLi.appendChild(resourceLink);
                         }
-
                         lessonUl.appendChild(lessonLi);
                     }
 
                     chapterLi.appendChild(lessonUl);
                     chapterUl.appendChild(chapterLi);
+                    }
+                    else{
+                        console.log(chapter)
+                        const resourceLink = document.createElement('a');
+                            resourceLink.href = moduleMap[module].chapters[chapter].resources;
+                            resourceLink.textContent = `Resource: ${chapter}`;
+                            chapterLi.appendChild(resourceLink);
+                            console.log(resourceLink);
+                    chapterUl.appendChild(chapterLi);
+
+                    }
                 }
 
                 moduleLi.appendChild(chapterUl);
